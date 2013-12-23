@@ -1,0 +1,3 @@
+[submodule "vendor/lua-curl"]
+	path = vendor/lua-curl
+	url = git://github.com/msva/lua-curl.git
