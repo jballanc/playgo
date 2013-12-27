@@ -5,27 +5,36 @@ CC=clang
 CFLAGS=-pagezero_size 10000 -image_base 100000000 -l$(LUAJIT_LIB) -Ibuild
 LDFLAGS=-lexpat -lcurl
 
-BC = main.h
-LUA_SRC = $(wildcard src/*.lua)
-OBJS = $(LUA_SRC:.lua=.o)
+slashtodots = $(addprefix build/,$(addsuffix $1,$(subst /,.,$(patsubst src/%.lua,%,$2))))
+rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-playgo: lxp lua-curl $(OBJS) $(BC)
+BC = build/main.h
+LUA_SRC = $(call rwildcard,src/,*.lua)
+LUA_OBJS = $(call slashtodots,.o,$(LUA_SRC))
+OBJS = build/lxp.o build/lua-curl.o
+
+playgo: $(OBJS) $(LUA_OBJS) $(BC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(wildcard build/*.o) main.c
 
+build/luadeps.mk: | build
+	$(foreach f,$(LUA_SRC),$(shell echo "$(call slashtodots,.lua,$(f)): $(f)\n\tcp $$< \$$@" >> build/luadeps.mk))
+
+include build/luadeps.mk
+
 %.o: %.lua | build
-	$(LUAJIT_BIN) -b $(@:.o=.lua) build/$(notdir $@)
+	$(LUAJIT_BIN) -b $< $@
 
-%.h: %.lua | build
-	$(LUAJIT_BIN) -b $(@:.h=.lua) build/$(notdir $@)
+build/main.h: main.lua | build
+	$(LUAJIT_BIN) -b $< build/$(notdir $@)
 
-lxp: | build
+build/lxp.o: | build
 	$(MAKE) -C vendor/lua-expat
-	cp vendor/lua-expat/src/*.o ./build/
+	ld -r vendor/lua-expat/src/*.o -o ./build/lxp.o
 
-lua-curl: | build
+build/lua-curl.o: | build
 	cmake -DUSE_LUAJIT=ON -Bvendor/lua-curl/ -Hvendor/lua-curl/
 	$(MAKE) -C vendor/lua-curl
-	cp vendor/lua-curl/CMakeFiles/cURL.dir/src/*.o ./build/
+	ld -r vendor/lua-curl/CMakeFiles/cURL.dir/src/*.o -o ./build/lua-curl.o
 
 .PHONY: clean
 clean:
