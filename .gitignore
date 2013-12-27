@@ -1,3 +1,4 @@
 playgo
+build
 *.o
 main.h
