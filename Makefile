@@ -12,6 +12,7 @@ BC = build/main.h
 LUA_SRC = $(call rwildcard,src/,*.lua)
 LUA_OBJS = $(call slashtodots,.o,$(LUA_SRC))
 OBJS = build/lxp.o build/lua-curl.o
+TESTS = $(call rwildcard,test/,*.lua)
 
 playgo: $(OBJS) $(LUA_OBJS) $(BC)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(wildcard build/*.o) main.c
@@ -36,12 +37,16 @@ build/lua-curl.o: | build
 	$(MAKE) -C vendor/lua-curl
 	ld -r vendor/lua-curl/CMakeFiles/cURL.dir/src/*.o -o ./build/lua-curl.o
 
-.PHONY: clean
+build:
+	mkdir -p $@
+
+.PHONY: clean test
+
+test:
+	@ $(foreach t,$(TESTS),LUA_PATH=";;./src/?.lua;./test/?.lua;./vendor/luaunit/?.lua" $(LUAJIT_BIN) $(t))
+
 clean:
 	$(MAKE) clean -C vendor/lua-expat
 	$(MAKE) clean -C vendor/lua-curl
 	rm -rf build playgo
-
-build:
-	mkdir -p $@
 
