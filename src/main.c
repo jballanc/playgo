@@ -3,7 +3,6 @@
 #include <luajit-2.0/lua.h>
 #include <luajit-2.0/lualib.h>
 #include <luajit-2.0/lauxlib.h>
-#include "main.h"
 
 #define CHECK_LOADED(i) if(i) {\
                           fprintf(stderr, "Problem loading playgo: %s\n",\
@@ -24,9 +23,7 @@ main(int argc, char *argv[]) {
   luaopen_lxp(L);
   luaopen_cURL(L);
 
-  CHECK_LOADED(luaL_loadbuffer(L, luaJIT_BC_main, luaJIT_BC_main_SIZE, "main"));
-  CHECK_LOADED(lua_pcall(L, 0, LUA_MULTRET, 0));
-
+  luaL_dostring(L, "require \"main\"");
   lua_getglobal(L, "main");
   CHECK_LOADED(lua_pcall(L, 0, 0, 0));
 

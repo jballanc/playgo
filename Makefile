@@ -8,14 +8,14 @@ LDFLAGS=-lexpat -lcurl
 slashtodots = $(addprefix build/,$(addsuffix $1,$(subst /,.,$(patsubst src/%.lua,%,$2))))
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-BC = build/main.h
+MAIN = src/main.c
 LUA_SRC = $(call rwildcard,src/,*.lua)
 LUA_OBJS = $(call slashtodots,.o,$(LUA_SRC))
 OBJS = build/lxp.o build/lua-curl.o
 TESTS = $(call rwildcard,test/,*.lua)
 
-playgo: $(OBJS) $(LUA_OBJS) $(BC)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(wildcard build/*.o) main.c
+playgo: $(MAIN) $(LUA_OBJS) $(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(wildcard build/*.o) $(MAIN)
 
 build/luadeps.mk: | build
 	$(foreach f,$(LUA_SRC),$(shell echo "$(call slashtodots,.lua,$(f)): $(f)\n\tcp $$< \$$@" >> build/luadeps.mk))
@@ -24,9 +24,6 @@ include build/luadeps.mk
 
 %.o: %.lua | build
 	$(LUAJIT_BIN) -b $< $@
-
-build/main.h: main.lua | build
-	$(LUAJIT_BIN) -b $< build/$(notdir $@)
 
 build/lxp.o: | build
 	$(MAKE) -C vendor/lua-expat
