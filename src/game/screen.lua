@@ -2,10 +2,9 @@ local screen = {}
 
 function screen.new()
   print("Initializing screen...")
-end
-
-function screen.setup()
-  print("Configuring parameters...")
+  return { setup = function()
+                     print("Configuring parameters...")
+                   end }
 end
 
 return screen
