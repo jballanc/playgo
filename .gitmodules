@@ -4,3 +4,6 @@
 [submodule "vendor/luaunit"]
 	path = vendor/luaunit
 	url = git://github.com/bluebird75/luaunit.git
+[submodule "vendor/LuaJIT"]
+	path = vendor/LuaJIT
+	url = http://luajit.org/git/luajit-2.0.git
