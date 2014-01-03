@@ -1,11 +1,11 @@
-LJDESTDIR=$(CURDIR)/build
-LJPREFIX=$(LJDESTDIR)/usr/local
-LJSTATIC=$(LJPREFIX)/lib/libluajit-5.1.a
-LJBIN=$(LJPREFIX)/bin/luajit
+LJDESTDIR = $(CURDIR)/build
+LJPREFIX = $(LJDESTDIR)/usr/local
+LJSTATIC = $(LJPREFIX)/lib/libluajit-5.1.a
+LJBIN = $(LJPREFIX)/bin/luajit
 
-CC=clang
-CFLAGS=-pagezero_size 10000 -image_base 100000000 -Ibuild/usr/local/include
-LDFLAGS=-lexpat -lcurl
+CC = clang
+CFLAGS = -pagezero_size 10000 -image_base 100000000 -Ibuild/usr/local/include
+LDFLAGS = -lexpat -lcurl
 
 slashtodots = $(addprefix build/,$(addsuffix $1,$(subst /,.,$(patsubst src/%.lua,%,$2))))
 rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
@@ -13,7 +13,8 @@ rwildcard = $(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2
 MAIN = src/main.c
 LUA_SRC = $(call rwildcard,src/,*.lua)
 LUA_OBJS = $(call slashtodots,.o,$(LUA_SRC))
-OBJS = build/lxp.o build/lua-curl.o
+LPEG_OBJS = lpvm.o lpcap.o lptree.o lpcode.o lpprint.o
+OBJS = build/lxp.o build/lua-curl.o build/lpeg.o
 TESTS = $(call rwildcard,test/,*.lua)
 
 playgo: $(MAIN) $(LUA_OBJS) $(OBJS)
@@ -36,6 +37,10 @@ build/lua-curl.o: | build
 	$(MAKE) -C vendor/lua-curl
 	ld -r vendor/lua-curl/CMakeFiles/cURL.dir/src/*.o -o ./build/lua-curl.o
 
+build/lpeg.o: | build
+	$(MAKE) -C vendor/lpeg $(LPEG_OBJS)
+	ld -r vendor/lpeg/*.o -o ./build/lpeg.o
+
 $(LJBIN) $(LJSTATIC): | build
 	DESTDIR=$(CURDIR)/build $(MAKE) -C vendor/LuaJIT install
 
@@ -50,6 +55,7 @@ test:
 clean:
 	$(MAKE) clean -C vendor/lua-expat
 	$(MAKE) clean -C vendor/lua-curl
+	$(MAKE) clean -C vendor/lpeg
 	$(MAKE) clean -C vendor/LuaJIT
 	rm -rf build playgo
 
