@@ -12,6 +12,7 @@
 
 extern int luaopen_lxp(lua_State *);
 extern int luaopen_cURL(lua_State *);
+extern int luaopen_lpeg(lua_State *);
 
 int
 main(int argc, char *argv[]) {
@@ -22,6 +23,7 @@ main(int argc, char *argv[]) {
   luaL_openlibs(L);
   luaopen_lxp(L);
   luaopen_cURL(L);
+  luaopen_lpeg(L);
 
   luaL_dostring(L, "require \"main\"");
   lua_getglobal(L, "main");
