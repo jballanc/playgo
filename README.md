@@ -22,7 +22,22 @@ executables. Aside from LuaJIT, this project is also using lcurses for drawing
 the game screen in terminal, Lua-Curl for interactions with the Dragon Go
 Server, and LPeg for parsing SGF files.
 
-
 ## Build System
 
+This project uses a very traditional GNU Make makefile to build and run tests,
+however the makefile itself uses a handful of tricks to make everything work:
 
+* The vendored Lua libraries are built using their own makefiles, but then the
+  resulting object files are bundled as a retargeted object file for later
+  inclusion in the main build step.
+
+* The Lua libraries themselves are compiled to object files using LuaJIT, but in
+  such a way that `require` still works as expected.
+
+* In order to accomplish the required renaming of the Lua files for compilation,
+  a make include file is generated as part of the build process.
+
+* All targets are specified in such a way that they will only be rebuilt when
+  something changes, making incremental builds extremely efficient.
+
+For all the details, see the comments in the [Makefile](Makefile) itself.
