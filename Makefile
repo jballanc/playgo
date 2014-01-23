@@ -102,6 +102,18 @@ build/luadeps.mk: | build
 
 include build/luadeps.mk
 
+# The final part of this trick is a catch-all target for any Lua object files
+# that don't already have a target defined in the "build/luadeps.mk" include
+# file. This would be the case if a new Lua file was created and then Make was
+# run from a non-clean state (i.e. running "make" without first running "make
+# clean"). In such a situation, we need to clear out the outdated include file,
+# rebuild it, and then re-run the Lua file build step.
+build/%.lua: build/luadeps.mk
+	rm -f $(CURDIR)/build/luadeps.mk
+	$(MAKE) build/luadeps.mk
+	$(MAKE) $@
+
+
 # The acutal target for generating object files from Lua source using LuaJIT.
 # This target depends on both the Lua files from the renaming target above and
 # the vendored version of LuaJIT compiled below.
