@@ -67,9 +67,6 @@ LUA_SRC = $(call rwildcard,src/,*.lua)
 # ...while the LUA_OBJS collection is the list of the compiled object files that
 # will actually be linked in the final build step.
 LUA_OBJS = $(call slashtodots,.o,$(LUA_SRC))
-# Since the LPeg project doesn't have a clean "all" build step, we need to
-# reproduce the list of object files that need to be compiled:
-LPEG_OBJS = lpvm.o lpcap.o lptree.o lpcode.o lpprint.o
 # These are the re-targeted object files that will actually be linked in the
 # final executable:
 OBJS = build/lxp.o build/lua-curl.o build/lpeg.o
@@ -148,12 +145,14 @@ build/lua-curl.o: $(LJBIN) | build
 	$(MAKE) -C vendor/lua-curl
 	ld -r vendor/lua-curl/CMakeFiles/cURL.dir/src/*.o -o ./build/lua-curl.o
 
-# ...and LPeg (for parsing SGF files; note that instead of relying on the
-# default "make" target for LPeg, we specify the object files needed -- see
-# above):
-build/lpeg.o: | build
-	$(MAKE) -C vendor/lpeg $(LPEG_OBJS)
-	ld -r vendor/lpeg/*.o -o ./build/lpeg.o
+# ...and LPeg (for parsing SGF files). Note that we rely on having set the
+# "PLATFORM" variable ahead of time, since LPeg's build does not do
+# autodetection on its own.
+build/lpeg.o: $(LJBIN) | build
+	LUADIR=$(LJPREFIX)/include/luajit-2.0/ $(MAKE) -C vendor/LPeg $(PLATFORM)
+	ld -r vendor/LPeg/*.o -o $(CURDIR)/build/lpeg.o
+	mv vendor/LPeg/lpeg.so $(CURDIR)/build/
+	cp vendor/LPeg/re.lua $(CURDIR)/build/
 
 # In order to remove any dependance on a local install of LuaJIT, we build our
 # own vendored version and install it in a faux directory structure under
