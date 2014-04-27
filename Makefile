@@ -15,12 +15,26 @@ LJBIN = $(LJPREFIX)/bin/luajit
 
 # Standard C Constants
 #
-# We're using Clang to compile the main.c shim that ties everything together.
-# The only special caveat we need to worry about is that LuaJIT (on OS X)
-# requires a non-traditional page-zero size and base image address offset.
-CC = clang
-CFLAGS = -pagezero_size 10000 -image_base 100000000 -Ibuild/usr/local/include
-# The only external dependencies for the entire project are libcurl and
+ifeq ($(strip $(shell uname)), Darwin)
+  # On OS X, we compile the main.c shim that ties everything together, as well
+  # as all of the vendored dependencies, using Clang. We need ensure that the
+  # correct values of page-zero size and base image address offset for LuaJIT
+  # are set.  Finally the `PLATFORM` constant is set to macosx for use later
+  # during LPeg compilation.
+  CC = clang
+  CFLAGS = -pagezero_size 10000 -image_base 100000000 -Ibuild/usr/local/include
+  PLATFORM = macosx
+else
+  # On Linux, we'll use the system default C compiler (pretty much always gcc)
+  # for main.c and the vendored dependencies. The only additional configuration
+  # required is to explicitly list the libraries that LuaJIT depends on, so that
+  # we can statically link it with the finished binary.
+  CFLAGS = -Ibuild/usr/local/include
+  PLATFORM = linux
+  LJ_OPTS = -lm -ldl -lc
+endif
+#
+# Finally, the only external dependencies for the entire project are libcurl and
 # libexpat.
 LDFLAGS = -lexpat -lcurl
 
