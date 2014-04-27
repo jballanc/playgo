@@ -6,7 +6,7 @@
 #
 # Build results will go in the "./build" directory along with everything else.
 # However, the LuaJIT build process expects a full prefix path for binaries,
-# libraries, etc. So, we create a fake `/usr/local` heirarchy in the build
+# libraries, etc. So, we create a fake "/usr/local" heirarchy in the build
 # directory where everything will go.
 LJDESTDIR = $(CURDIR)/build
 LJPREFIX = $(LJDESTDIR)/usr/local
@@ -19,7 +19,7 @@ ifeq ($(strip $(shell uname)), Darwin)
   # On OS X, we compile the main.c shim that ties everything together, as well
   # as all of the vendored dependencies, using Clang. We need ensure that the
   # correct values of page-zero size and base image address offset for LuaJIT
-  # are set.  Finally the `PLATFORM` constant is set to macosx for use later
+  # are set.  Finally the "PLATFORM" constant is set to macosx for use later
   # during LPeg compilation.
   CC = clang
   CFLAGS = -pagezero_size 10000 -image_base 100000000 -Ibuild/usr/local/include
@@ -33,7 +33,6 @@ else
   PLATFORM = linux
   LJ_OPTS = -lm -ldl -lc
 endif
-#
 # Finally, the only external dependencies for the entire project are libcurl and
 # libexpat.
 LDFLAGS = -lexpat -lcurl
