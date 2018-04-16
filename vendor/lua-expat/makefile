@@ -1,30 +1,34 @@
-# This is a heavily modified Makefile based on the original for lxp:
+CC		?= cc
+RM		?= rm -rf
+INSTALL		?= install
+INSTALL_PROGRAM	?= $(INSTALL)
+INSTALL_DATA	?= $(INSTALL) -m 644
+LUA_V		?= 5.1
+LUA_LDIR	?= /usr/share/lua/$(LUA_V)
+LUA_CDIR	?= /usr/lib/lua/$(LUA_V)
+T		= lxp
+LIBNAME		= $(T).so
 
-T= lxp
-V= 1.2.0
+COMMON_CFLAGS	 = -g -pedantic -Wall -O2 -fPIC -DPIC -ansi
+LUA_INC		?= -I/usr/include/lua$(LUA_V)
+EXPAT_INC	?= -I/usr/include
+CF		 = $(LUA_INC) $(EXPAT_INC) $(COMMON_CFLAGS) $(CFLAGS)
 
-# LuaJIT includes directory
-LUA_INC= /usr/local/include/luajit-2.0
-# Expat includes directory
-EXPAT_INC= /usr/include
+EXPAT_LIB	 = -lexpat
+COMMON_LDFLAGS	 = -shared
+LF		 = $(COMMON_LDFLAGS) $(EXPAT_LIB) $(LDFLAGS)
 
-# Compilation parameters
-CWARNS = -Wall -pedantic \
-        -Waggregate-return \
-        -Wcast-align \
-        -Wmissing-prototypes \
-        -Wstrict-prototypes \
-        -Wnested-externs \
-        -Wpointer-arith \
-        -Wshadow \
-        -Wwrite-strings
+OBJS		 = src/lxplib.o
 
-CFLAGS = $(CWARNS) -ansi -O2 -I$(LUA_INC) \
-   -I$(COMPAT_DIR) -I$(EXPAT_INC)
-CC = clang
+lib: src/$(LIBNAME)
 
-OBJS= src/lxplib.o
-objs: $(OBJS)
+src/$(LIBNAME):
+	export MACOSX_DEPLOYMENT_TARGET="10.3";
+	$(CC) $(CF) -o $@ src/$(T)lib.c $(LF)
+
+install:
+	$(INSTALL_PROGRAM) -D src/$(LIBNAME) $(DESTDIR)$(LUA_CDIR)/$(LIBNAME)
+	$(INSTALL_PROGRAM) -D src/$T/lom.lua $(DESTDIR)$(LUA_LDIR)/$T/lom.lua
 
 clean:
-	rm -f $(OBJS)
+	$(RM) src/$(LIBNAME) $(OBJS)
