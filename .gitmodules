@@ -7,3 +7,6 @@
 [submodule "vendor/LuaJIT"]
 	path = vendor/LuaJIT
 	url = http://luajit.org/git/luajit-2.0.git
+[submodule "vendor/gnugo"]
+	path = vendor/gnugo
+	url = git://git.savannah.gnu.org/gnugo.git
